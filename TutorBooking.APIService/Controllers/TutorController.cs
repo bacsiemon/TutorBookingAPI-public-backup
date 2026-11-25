@@ -1,0 +1,185 @@
+﻿using App.Core.Base;
+using App.DTOs.AppUserDTOs.TutorDTOs;
+using App.DTOs.HashtagDTOs;
+using App.DTOs.UserDTOs;
+using App.Repositories.Models.Scheduling;
+using App.Repositories.Models.User;
+using App.Services.Interfaces.User;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace TutorBooking.APIService.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TutorController : ControllerBase
+    {
+        #region DI Constructor
+        private readonly ITutorService _tutorService;
+
+        public TutorController(ITutorService tutorService)
+        {
+            _tutorService = tutorService;
+        }
+        #endregion
+
+        [HttpPost("register")]
+        [Authorize]
+        public async Task<IActionResult> RegisterAsTutor([FromBody] TutorRegistrationRequest request)
+        {
+            var tutor = await _tutorService.RegisterAsTutorAsync(request);
+            return Ok(new BaseResponseModel<TutorResponse>(
+                data: tutor,
+                message: "Đăng ký làm gia sư thành công!"
+            ));
+        }
+
+        //[AuthorizeRoles(Role.Tutor, Role.Admin)]
+        [HttpPatch("update-languages")]
+        [AuthorizeRoles(Role.Tutor)]
+        public async Task<IActionResult> UpdateLanguages([FromBody] List<TutorLanguageDTO> languages)
+        {
+            await _tutorService.UpdateLanguagesAsync(languages);
+            return Ok(new BaseResponseModel<string>(
+                message: "Cập nhật ngôn ngữ thành công!"
+            ));
+        }
+
+        [HttpPatch("update-tutor-hashtags")]
+        [Authorize]
+        public async Task<IActionResult> UpdateHashtags([FromBody] UpdateTutorHashtagListRequest request)
+        {
+            await _tutorService.UpdateTutorHashtagsAsync(request);
+            return Ok(new BaseResponseModel<string>(
+                message: "Cập nhật hashtag thành công!"
+            ));
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var tutor = await _tutorService.GetByIdAsync(id);
+            return Ok(new BaseResponseModel<TutorResponse>(
+                data: tutor,
+                message: "Thông tin chi tiết của gia sư"
+            ));
+        }
+
+        //[HttpGet("{id}/verification-status")]
+        //public async Task<IActionResult> GetVerificationStatus(string id)
+        //{
+        //    var status = await _tutorService.GetVerificationStatusAsync(id);
+        //    return Ok(new BaseResponseModel<VerificationStatus>(
+        //        data: status
+        //    ));
+        //}
+
+        //[HttpPatch("{id}/verification-status")]
+        //public async Task<IActionResult> UpdateVerificationStatus(
+        //    string tutorId, 
+        //    [FromBody] VerificationStatus status,
+        //    [FromQuery] string? updatedBy = null)
+        //{
+        //    await _tutorService.UpdateVerificationStatusAsync(tutorId, status, updatedBy);
+        //    return Ok(new BaseResponseModel<string>(
+        //        message: "Cập nhật trạng thái xác minh thành công!"
+        //    ));
+        //}
+
+        [HttpGet("hashtags")]
+        [AuthorizeRoles(Role.Tutor)]
+        public async Task<IActionResult> GetTutorHashtags()
+        {
+            var hashtags = await _tutorService.GetTutorHashtagsAsync();
+            return Ok(new BaseResponseModel<List<TutorHashtagDTO>>(
+                data: hashtags,
+                message: "Danh sách hashtag của gia sư."
+            ));
+        }
+
+        [HttpGet("languages")]
+        [AuthorizeRoles(Role.Tutor)]
+        public async Task<IActionResult> GetTutorLanguages()
+        {
+            var languages = await _tutorService.GetTutorLanguagesAsync();
+            return Ok(new BaseResponseModel<List<TutorLanguageDTO>>(
+                data: languages,
+                message: "Danh sách ngôn ngữ của gia sư."
+            ));
+        }
+
+        [HttpGet("recommended-tutors")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTutorCardList(string? languageCode)
+        {
+            var tutorCards = await _tutorService.GetRecommendedTutorCardsAsync(languageCode);
+            return Ok(new BaseResponseModel<object>(
+                data: tutorCards,
+                message: "Danh sách gia sư."
+            ));
+        }
+
+		[HttpGet("all")]
+		[AllowAnonymous]
+		public async Task<IActionResult> GetAllTutors([FromQuery] string[]? languageCodes,
+            [FromQuery] string? primaryLanguageCode,
+            [FromQuery] DayInWeek[]? daysInWeek,
+            [FromQuery] int[]? slotIndexes,
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string[]? hashtags,
+            [FromQuery] string? fullName,
+            int page = 1,
+            int size = 20)
+		{
+			var tutorCards = await _tutorService.GetTutorCardsPagingAsync(languageCodes, primaryLanguageCode, daysInWeek, slotIndexes,minPrice, maxPrice, hashtags, fullName, page, size);
+			return Ok(new BaseResponseModel<object>(
+				data: tutorCards.Items,
+                additionalData: tutorCards.AdditionalData,
+                message: "Danh sách gia sư."
+			));
+		}
+
+        [HttpGet("{tutorId}/booking-config")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetBookingConfig(string tutorId)
+        {
+            var config = await _tutorService.GetBookingConfigAsync(tutorId);
+            return Ok(new BaseResponseModel<BookingConfigDTO>(
+                data: config,
+                message: "Cấu hình đặt lịch của gia sư"
+            ));
+        }
+
+        [HttpPut("booking-config")]
+        [AuthorizeRoles(Role.Tutor)]
+        public async Task<IActionResult> UpdateBookingConfig([FromBody] UpdateBookingConfigRequest request)
+        {
+            await _tutorService.UpdateBookingConfigAsync(request);
+            return Ok(new BaseResponseModel<object>(
+                message: "Cập nhật cấu hình đặt lịch thành công!"
+            ));
+        }
+
+        [HttpPut("update-profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateTutorProfileRequest request)
+        {
+            await _tutorService.UpdateTutorProfileAsync(request);
+            return Ok(new BaseResponseModel<object>(
+                message: "Cập nhật thông tin gia sư thành công!"
+            ));
+        }
+
+        // [HttpPost("sync-booking-configs")]
+        // [AuthorizeRoles(Role.Admin, Role.Staff)]
+        // public async Task<IActionResult> SyncBookingConfigs()
+        // {
+        //     await _tutorService.SyncBookingConfigsAsync();
+        //     return Ok(new BaseResponseModel<object>(
+        //         message: "Đồng bộ cấu hình đặt lịch cho tất cả gia sư thành công!"
+        //     ));
+        // }
+    }
+}

@@ -1,0 +1,101 @@
+﻿using App.Core.Base;
+using App.DTOs.LegalDocumentDTOs;
+using App.DTOs.LegalDocumentDTOs.VersionDTOs;
+using App.Repositories.Models.User;
+using App.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace TutorBooking.APIService.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class LegalDocumentController : ControllerBase
+    {
+        private readonly ILegalDocumentService _legalDocumentService;
+        public LegalDocumentController(ILegalDocumentService legalDocumentService)
+        {
+            _legalDocumentService = legalDocumentService;
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllAsync(string? category, int page = 1, int size = 10)
+        {
+            var response = await _legalDocumentService.GetAllAsync(category, page, size);
+            return Ok(new BaseResponseModel<IEnumerable<LegalDocumentResponse>>(response,null, "SUCCESS"));
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetByIdAsync(string id)
+        {
+            var response = await _legalDocumentService.GetByIdAsync(id);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpGet("all-categories")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllCategoriesAsync()
+        {
+            var response = await _legalDocumentService.GetAllCategoriesAsync();
+            return Ok(new BaseResponseModel<ICollection<string>>(response, null, "SUCCESS"));
+        }
+
+        [HttpPost]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> CreateAsync([FromBody] LegalDocumentCreateRequest request)
+        {
+            var response = await _legalDocumentService.CreateAsync(request);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpPut]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> UpdateAsync([FromBody] LegalDocumentUpdateRequest request)
+        {
+            var response = await _legalDocumentService.UpdateAsync(request);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpDelete("{id}")]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> DeleteAsync(string id)
+        {
+            await _legalDocumentService.DeleteAsync(id);
+            return Ok(new BaseResponseModel<object>(null, null, "SUCCESS"));
+        }
+
+        [HttpGet("version/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetVersionByIdAsync(string id)
+        {
+            var response = await _legalDocumentService.GetVersionByIdAsync(id);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpPost("version")]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> CreateVersionAsync(LegalDocumentVersionCreateRequest request)
+        {
+            var response = await _legalDocumentService.CreateVersionAsync(request);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpPut("version")]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> UpdateVersionAsync([FromBody] LegalDocumentVersionUpdateRequest request)
+        {
+            var response = await _legalDocumentService.UpdateVersionAsync(request);
+            return Ok(new BaseResponseModel<object>(response, null, "SUCCESS"));
+        }
+
+        [HttpDelete("version/{id}")]
+        [AuthorizeRoles(Role.Manager, Role.Admin)]
+        public async Task<IActionResult> DeleteVersionAsync(string id)
+        {
+            await _legalDocumentService.DeleteVersionAsync(id);
+            return Ok(new BaseResponseModel<object>(null, null, "SUCCESS"));
+        }
+    }
+}

@@ -1,0 +1,39 @@
+﻿using App.Core.Base;
+using App.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using TutorBooking.APIService.Hubs.ChatHubs;
+
+namespace TutorBooking.APIService.Controllers
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	public class ChatController : ControllerBase
+	{
+		private IChatService _chatService;
+
+		public ChatController(IChatService chatService)
+		{
+			_chatService = chatService;
+		}
+
+		[HttpGet("conversations")]
+		[Authorize]
+		public async Task<IActionResult> GetConversations(int page = 1, int size = 20)
+		{
+			return Ok(new BaseResponseModel<object>(
+				data: await _chatService.GetConversationsByUserIdAsync(page, size)
+				));
+		}
+
+		[HttpGet("conversation/{id}")]
+		[Authorize]
+		public async Task<IActionResult> GetConversationById([FromRoute]string id, [FromQuery]int page = 1 , int size = 20)
+		{
+			return Ok(new BaseResponseModel<object>(
+				data: await _chatService.GetConversationAsync(id, page, size)
+				));
+		}
+    }
+}

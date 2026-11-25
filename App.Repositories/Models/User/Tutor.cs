@@ -1,0 +1,103 @@
+﻿using App.Core.Base;
+using App.Repositories.Models.Papers;
+using App.Repositories.Models.Rating;
+using App.Repositories.Models.Scheduling;
+using System.Linq.Expressions;
+
+namespace App.Repositories.Models.User
+{
+    public class Tutor
+    {
+        public string UserId { get; set; } = string.Empty;
+
+        // Tutor Info
+        public string NickName { get; set; } = string.Empty;
+        public string Brief { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string TeachingMethod { get; set; } = string.Empty;
+
+        // Verification Info
+        public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Basic;
+        public DateTime LastStatusUpdateAt { get; set; }
+        public DateTime? BecameTutorAt { get; set; }
+
+        public virtual AppUser User { get; set; } = null!;
+
+        // Navigation properties
+        public virtual BookingConfig? BookingConfig { get; set; }
+        public virtual TutorApplication? Application { get; set; }
+        public virtual ICollection<TutorLanguage> Languages { get; set; } = new List<TutorLanguage>();
+        public virtual ICollection<TutorHashtag> Hashtags { get; set; } = new List<TutorHashtag>();
+        public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+        public virtual ICollection<WeeklyAvailabilityPattern> AvailabilityPatterns { get; set; } = new List<WeeklyAvailabilityPattern>();
+        public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public virtual ICollection<LearnerTimeSlotRequest>? TimeSlotRequests { get; set; } = new List<LearnerTimeSlotRequest>();
+        public virtual ICollection<BookingSlotRating> BookingSlotRatings { get; set; } = new List<BookingSlotRating>();
+        public virtual ICollection<TutorIntroductionVideo>? IntroductionVideos { get; set; } = new List<TutorIntroductionVideo>();
+
+        #region Behavior
+        public Expression<Func<Tutor, object>>[] UpdateVerificationStatus(VerificationStatus newStatus)
+        {
+            if (VerificationStatus == newStatus)
+                return Array.Empty<Expression<Func<Tutor, object>>>();
+
+            VerificationStatus = newStatus;
+            LastStatusUpdateAt = DateTime.UtcNow;
+
+            return
+            [
+                x => x.VerificationStatus,
+                x => x.LastStatusUpdateAt
+            ];
+        }
+
+        public Expression<Func<Tutor, object>>[] UpdateTutorProfile(
+            string? nickName,
+            string? brief,
+            string? description,
+            string? teachingMethod)
+        {
+            var updatedFields = new List<Expression<Func<Tutor, object>>>();
+
+            if (nickName != null && NickName != nickName)
+            {
+                NickName = nickName;
+                updatedFields.Add(x => x.NickName);
+            }
+
+            if (brief != null && Brief != brief)
+            {
+                Brief = brief;
+                updatedFields.Add(x => x.Brief);
+            }
+
+            if (description != null && Description != description)
+            {
+                Description = description;
+                updatedFields.Add(x => x.Description);
+            }
+
+            if (teachingMethod != null && TeachingMethod != teachingMethod)
+            {
+                TeachingMethod = teachingMethod;
+                updatedFields.Add(x => x.TeachingMethod);
+            }
+
+            return updatedFields.ToArray();
+        }
+        #endregion      
+    }
+
+    public enum VerificationStatus
+    {
+        Basic = 0,           // Not Started (Gray Check)
+        PendingVerification = 1,  // Pending Verification (Gray Check)
+        Verified = 2,       // Verified (White Check)
+        //VerifiedUpload = 2,       // Verified via Documents (White Check)
+        //VerifiedHardcopy = 3,     // Verified via Hardcopy (Blue Check)
+        //PendingVerification,  // Pending Verification (Gray Check)
+        //PendingDocuments = 1,     // Awaiting Documents
+        //PendingReverification, // Pending Re-verification After Update
+        //RevisionRequested     // Revision Requested (Red Check)
+    }
+}

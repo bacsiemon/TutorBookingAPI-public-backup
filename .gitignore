@@ -1,0 +1,68 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vs/
+*.userprefs
+*.usertasks
+_ReSharper.*
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Build artifacts
+*.dll
+*.pdb
+*.exe
+*.cache
+*FileListAbsolute.txt
+*.assets.cache
+**/[Bb]in/*
+**/[Oo]bj/*
+
+# Bỏ qua tất cả các thư mục obj
+**/obj/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Local files
+plan.txt
+/.plan
+/.know
+/.idea
+
+# Secrets / Config
+**/appsettings.json
+appsettings.json
+*-firebase-adminsdk-*.json
+*.env
+.env.*
+
+# Test projects
+/App.TestAPI/
+/TutorBooking.IntegrationTests/
+/TutorBooking.UnitTests/
+/TutorBooking.NunitTests/
+/TutorBooking.XunitTests/
